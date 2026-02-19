@@ -37,9 +37,6 @@ class Solver {
 
 public:
   std::vector<std::vector<double>> buildD(const std::vector<Node> &nodes);
-  // static std::vector<std::vector<int>>
-  // computeAllFromStart(const std::vector<std::vector<double>> &D, int s);
-  //std::vector<int> optimal_tour(const std::vector<std::vector<double>> &D);
   static double pathLength(const std::vector<std::vector<double>> &D,
                            const std::vector<int> &path);
   static double tourLength(const std::vector<std::vector<double>> &D,
@@ -50,7 +47,6 @@ public:
   std::vector<std::vector<std::vector<int>>>
   batch_constrained_optimal_tour_mip(const std::vector<std::vector<double>> &D);
   std::vector<int> optimal_tour_mip(const std::vector<std::vector<double>> &D);
-  //double distance(double *x, double *y, int i, int j);
   static void findsubtour(int n, double **sol, int *tourlenP, int *tour);
   bool sanitize_path(std::vector<int> &v, const int &a, const int &b);
 };

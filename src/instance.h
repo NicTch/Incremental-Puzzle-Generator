@@ -19,7 +19,6 @@ public:
   std::vector<int> optimal_tour{};
   double optimal_tour_length{};
   static std::vector<Node> readNodesCSV(std::istream &in);
-  //std::vector<Candidate> uniformPicker(int n);
   void lookaheadPickMax(int branching, int depth, Options &opt);
   void applyChildToRoot();
   static void scaleToCanvas(std::vector<Node> &nodes);
@@ -51,9 +50,6 @@ private:
   }
   void buildSubtree(int branching, int depth, Options &opt);
   void evalScore(int depth, Options &opt);
-  //static void keepBestAndRefill(std::vector<Candidate> &cs, Instance &ctx, int width, Options &opt);
-  // static void refreshSubtreeCandidates(Instance *node, int branching,
-  //                                      Options &opt);
 };
 void printDecommissions(const tsp_puzzle::Instance &inst, const int k, Options &opt);
 void printCandidates(const tsp_puzzle::Instance &inst, const int k, Options &opt);
@@ -61,7 +57,6 @@ void printNodes(const tsp_puzzle::Instance &inst, Options &opt);
 void printOPT(const tsp_puzzle::Instance &inst, Options &opt);
 void printHammiltomPath(const tsp_puzzle::Instance &inst, const int i,
                         const int j, Options &opt);
-// static void rebuildChildrenForNode(tsp_puzzle::Instance *node, Options &opt);
 std::string nodes_to_svg(const std::vector<Node> &nodes, const Options &opt,
                          const double radius);
 double summed_angle_percent(const std::vector<int> solution,
