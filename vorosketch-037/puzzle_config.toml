@@ -1,0 +1,17 @@
+delta = 0.15
+n_initial_nodes = 3
+instance_branch = 5
+lookahead_depths = 1
+runtime_optimization = false
+n_candidates = 64
+voronoi_resolution = 2000
+render_voronoi = true
+verbose = true
+min_edge_change = 1
+# total number of nodes in the resulting puzzle
+total_nodes = 7
+svg_viewport_size = 265
+epsilon = 0.2
+winding_length_percent = 0.052
+benchmark = false
+benchmark_time = 1

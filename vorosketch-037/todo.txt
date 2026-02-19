@@ -1,0 +1,58 @@
+TODO:
+----------------------------------------------------
+- count the change of the chimniz puzzle and compare it with my puzzles
+- make the generator start with random points
+- document how each puzzle is generated (print out options after every generation?)
+- kurze beweise schreiben: 1. warum der unterschied zwischen der lösung von instanze mit n und mit n+1 punkten
+implizit gegeben ist(ist es wegen delta? denk noch mal drüber nach) 2. warum die punkte keinen mindest abstand
+haben mussen, es ist wahrscheinlich auch implizit gegeben durch die anderen kriterien.
+
+- programm profilen, warum ist das so langsam? vielleicht weil gurobi model so of neu gestartet wird, versuche
+ein model zu behalten und nur die parameter aus zu taushen.
+- delta: sollte 10% vom width vom canvas sein (-1,1) also 10% von 2
+ 
+- greedy with lookahead (rolling horizon), maybe wurzel nehmen
+	- das heisst, um den ersten node von den 5 candidaten zu waehlen, muss ich 
+	fuer jeden candidaten so tun als wuerde ich es nehmen, 5 neue candidaten generieren
+	auch so tun als wuerde ich es fest halten, und wieder 5 candidates generieren. 
+	so habe ich 5*5*5 moeglichkeiten und ich waehle fuer den aktuellen schritte den knoten mit dem groessten
+	overall change. bsp:
+ lookahead:1     2      3
+	cand1 -> cand1  -> cand1    
+                        -> cand2 
+                        -> cand3 
+			...
+	      -> cand2
+                        -> cand1 
+			...
+	      -> cand3
+                        -> cand1 
+			...
+	      -> cand4
+                        -> cand1 
+			...
+	      -> cand5
+                        -> cand1 
+			...
+	cand2
+	      -> cand1
+	      -> cand2
+	      -> cand3
+	      -> cand4
+	      -> cand5
+	cand3
+	...
+	cand5
+
+	max(c(candi) + c(cantj) + c(candk)) i,j,k in {1,..,5}
+
+	-die besten paar lookahead vom gewinner beibehalten. weil wenn ich einen gewinner gefunden habe,
+	und dann kommplett neue punkte generiere, ist das ja sinnlos, wenn die neuen zufaelligen candidaten
+	schlechter sind.
+	- anzahl von lookahead und candidaten sollte man anpassen
+
+- balance zwischen lookahead und candidaten.
+- man will soweit wie m"oglich schauen(lookahead maximieren), abhaengig von der lauzeit, was ist das maximale
+lookahead bevor die lauzeit explodiert. candidate sollte so viel sein, aber hat wahrscheinlich diminisching returns
+zu viele lohnt sich nicht.
+
