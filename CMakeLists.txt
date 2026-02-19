@@ -26,13 +26,14 @@ include_directories(${GUROBI_INCLUDE_DIRS})
 set(CMAKE_CXX_STANDARD 20)
 
 # list source files here
-set(sources vorosketch-037.cpp
-            solver.cpp
-            main.cpp
-            instance.cpp
-            options.cpp
-            benchmark.cpp
-            )
+set(sources 
+    src/vorosketch-037.cpp
+    src/solver.cpp
+    src/main.cpp
+    src/instance.cpp
+    src/options.cpp
+    src/benchmark.cpp
+)
 
 add_executable(${CMAKE_PROJECT_NAME} ${sources})
 
