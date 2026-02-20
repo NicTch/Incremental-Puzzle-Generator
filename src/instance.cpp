@@ -332,7 +332,7 @@ void Instance::buildSubtree(int branching, int depth, Options &opt) {
       const double detour_length = std::hypot(d1x, d1y) + std::hypot(d2x, d2y);
       const double new_tour_length =
           decommissions[c.nearest].tsp_tour_length + detour_length;
-      if (std::abs(new_tour_length - optimal_tour_length) < opt.epsilon) {
+      if (std::abs(new_tour_length - optimal_tour_length) < opt.epsilon *2 ) {
         continue;
       }
       chosen_cand.push_back(c);
@@ -361,7 +361,8 @@ void Instance::buildSubtree(int branching, int depth, Options &opt) {
     // pick random candidates
     if (chosen_cand.size() <= 0) {
       std::cout << "No candidtates with minimum change " << min_change
-                << " for the instance: \n";
+                << " for this instace.\n";
+                throw std::domain_error("Please consider lowering delta or min_change to incrase the candidate pool.");
       //printNodes(*this, opt);
     } else if ((int)chosen_cand.size() >= branching) {
       std::mt19937 gen(54);
@@ -478,8 +479,8 @@ void Instance::evalScore(int depth, Options &opt) {
 
 // Calculates the bestChild member of this Instance
 void Instance::lookaheadPickMax(int branching, int depth, Options &opt) {
-  buildSubtree(branching, depth, opt);
-  evalScore(depth, opt);
+    buildSubtree(branching, depth, opt);
+    evalScore(depth, opt);
 }
 
 void Instance::applyChildToRoot() {
@@ -596,7 +597,7 @@ std::string nodes_to_svg(const std::vector<Node> &nodes, const Options &opt,
 
     out << "    <circle id=\"solution-" << i << "\" cx=\"" << cx_svg
         << "\" cy=\"" << cy_svg << "\" r=\"" << radius
-        << "\" fill=\"none\" stroke=\"#f00\" stroke-width=\"0.01\" />\n";
+        << "\" fill=\"none\" stroke=\"#000\" stroke-width=\"0.01\" />\n";
   }
   out << "  </g>\n</svg>\n";
   return out.str();

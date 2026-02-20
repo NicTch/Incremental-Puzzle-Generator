@@ -5766,7 +5766,7 @@ vorosketch_main(const std::vector<tsp_puzzle::Node> &nodes,
         if (options.distance->description() == "TspDistance") {
           if (o.primary != noGroup && o.secondary != noGroup) {
             double diff = std::abs(scndDistance - primDistance);
-            if (diff < delta) {
+            if (diff < delta * 2) {
               // mark this pixel as black
               here.group = noGroup; // special marker group
               here.distance = 0;
