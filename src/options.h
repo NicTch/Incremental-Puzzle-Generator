@@ -26,4 +26,5 @@ struct Options {
   // Returns false if the file can't be opened; true otherwise (bad values are
   // ignored).
   static bool parse(Options &out, const std::string &path);
+  void save_config(const std::string& sourcePath);
 };

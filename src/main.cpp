@@ -35,8 +35,8 @@ std::filesystem::path createTimestampedFolder(const std::string& suffix) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: app file.csv\n";
+  if (argc < 3) {
+    std::cerr << "Usage: app file.csv config.toml\n";
     return 1;
   }
 
@@ -45,11 +45,15 @@ int main(int argc, char **argv) {
     std::cerr << "Could not open " << argv[1] << "\n";
     return 1;
   }
+
   Options options;
-  if (!Options::parse(options, "puzzle_config.toml")) {
+  if (!Options::parse(options, argv[2])) {
     std::cerr << "Use default options." << "\n";
   }
+
   options.output_path= createTimestampedFolder(std::to_string(options.total_nodes) + "n");
+
+  options.save_config(argv[2]);
   
   if (options.benchmark) {
     auto nodes = tsp_puzzle::Instance::readNodesCSV(in);
@@ -109,10 +113,10 @@ int main(int argc, char **argv) {
       if (options.verbose) {
         std::cout << "-------------verbose---------------\n";
         tsp_puzzle::printNodes(inst,options);
-        tsp_puzzle::printOPT(inst,options);
+        //tsp_puzzle::printOPT(inst,options);
         // tsp_puzzle::printHammiltomPath(inst, 0, 5);
-        tsp_puzzle::printDecommissions(inst, 10,options);
-        tsp_puzzle::printCandidates(inst, 5,options);
+        //tsp_puzzle::printDecommissions(inst, 10,options);
+        //tsp_puzzle::printCandidates(inst, 5,options);
         tsp_puzzle::print_all_solutions(inst, options);
       }
 

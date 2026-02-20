@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <filesystem>
 
 static std::string trim(std::string s) {
   auto notsp = [](int ch) { return !std::isspace(ch); };
@@ -146,4 +147,15 @@ bool Options::parse(Options &out, const std::string &path) {
     }
   }
   return true;
+}
+void Options::save_config(const std::string& sourcePath) {
+    if (this->output_path.empty()) 
+      return;
+    try {
+        std::filesystem::path src(sourcePath);
+        std::filesystem::path dst = this->output_path / src.filename();
+        std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing);
+    } catch (...) {
+        // Silently fail or log error as per your preference
+    }
 }

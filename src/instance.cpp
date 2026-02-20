@@ -303,12 +303,12 @@ void printHammiltomPath(const tsp_puzzle::Instance &inst, const int i,
   if (out) out << std::endl;
 }
 
-static inline bool sameCandidate(const Candidate &a, const Candidate &b) {
-  constexpr double eps = 1e-9;
-  auto eq = [&](double u, double v) { return std::abs(u - v) <= eps; };
-  return a.nearest == b.nearest && a.second == b.second && eq(a.x, b.x) &&
-         eq(a.y, b.y);
-}
+// static inline bool sameCandidate(const Candidate &a, const Candidate &b) {
+//   constexpr double eps = 1e-9;
+//   auto eq = [&](double u, double v) { return std::abs(u - v) <= eps; };
+//   return a.nearest == b.nearest && a.second == b.second && eq(a.x, b.x) &&
+//          eq(a.y, b.y);
+// }
 void Instance::buildSubtree(int branching, int depth, Options &opt) {
   if (depth <= 0)
     return;
@@ -484,6 +484,7 @@ void Instance::lookaheadPickMax(int branching, int depth, Options &opt) {
 
 void Instance::applyChildToRoot() {
   if (bestChild < 0 || bestChild >= (int)children.size())
+    std::cout << "Error: No best child" << "\n";
     return;
 
   std::unique_ptr<Instance> winner = std::move(children[bestChild]);
