@@ -362,7 +362,7 @@ void Instance::buildSubtree(int branching, int depth, Options &opt) {
     if (chosen_cand.size() <= 0) {
       std::cout << "No candidtates with minimum change " << min_change
                 << " for the instance: \n";
-      printNodes(*this, opt);
+      //printNodes(*this, opt);
     } else if ((int)chosen_cand.size() >= branching) {
       std::mt19937 gen(54);
       std::shuffle(chosen_cand.begin(), chosen_cand.end(), gen);
@@ -483,9 +483,10 @@ void Instance::lookaheadPickMax(int branching, int depth, Options &opt) {
 }
 
 void Instance::applyChildToRoot() {
-  if (bestChild < 0 || bestChild >= (int)children.size())
+  if (bestChild < 0 || bestChild >= (int)children.size()){
     std::cout << "Error: No best child" << "\n";
     return;
+  }
 
   std::unique_ptr<Instance> winner = std::move(children[bestChild]);
   children.clear();

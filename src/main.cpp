@@ -112,15 +112,15 @@ int main(int argc, char **argv) {
 
       if (options.verbose) {
         std::cout << "-------------verbose---------------\n";
-        tsp_puzzle::printNodes(inst,options);
         //tsp_puzzle::printOPT(inst,options);
         // tsp_puzzle::printHammiltomPath(inst, 0, 5);
         //tsp_puzzle::printDecommissions(inst, 10,options);
         //tsp_puzzle::printCandidates(inst, 5,options);
-        tsp_puzzle::print_all_solutions(inst, options);
       }
+      tsp_puzzle::printNodes(inst,options);
+      tsp_puzzle::print_all_solutions(inst, options);
 
-      std::cout << "Loaded " << inst.nodes.size() << " points\n";
+      //std::cout << "Loaded " << inst.nodes.size() << " points\n";
     } catch (const std::exception &e) {
       std::cerr << "Failed to build Instance: " << e.what() << "\n";
       return 1;

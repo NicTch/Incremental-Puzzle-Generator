@@ -12,7 +12,7 @@ cmake --build build
 
 -how to use the generator (windows):
 (call puzzle genenator followed by a csv with the starting nodes)
-.\build\Debug\inc_puzzle_gen.exe .\nodes\presentationseed.csv
+.\build\Debug\inc_puzzle_gen.exe .\nodes\presentationseed.csv .\puzzle_config.toml
 
 -print image with terminal:
 wezterm imgcat image.bmp:
