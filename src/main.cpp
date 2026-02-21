@@ -89,7 +89,10 @@ int main(int argc, char **argv) {
                   << inst.children[inst.bestChild]->optimal_tour_length -
                          inst.optimal_tour_length
                   << "\n";
-
+        if (inst.children.size() <= 0) {
+          std::cout << "No viable children for this instance.\n";
+          throw std::domain_error("Please consider lowering delta or min_change to incrase the candidate pool.");
+        }
         inst.applyChildToRoot();
         auto t2 = std::chrono::high_resolution_clock::now();
         auto ms_int =

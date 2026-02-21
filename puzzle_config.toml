@@ -1,18 +1,17 @@
 delta = 0.075
 n_initial_nodes = 3
-instance_branch = 3
-lookahead_depths = 1
-runtime_optimization = false
+instance_branch = 5
+lookahead_depths = 2
 n_candidates = 64
-voronoi_resolution = 2000
-render_voronoi = true
+voronoi_resolution = 300
+render_voronoi = false
 verbose = true
 min_edge_change = 1
 # total number of nodes in the resulting puzzle
 total_nodes = 8
 svg_viewport_size = 265
-epsilon = 0.1
+epsilon = 0.075
 winding_length_percent = 0.052
 benchmark = false
 benchmark_time = 1
-seed = 54
+seed = 43

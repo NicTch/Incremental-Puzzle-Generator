@@ -24,6 +24,8 @@ public:
   static void scaleToCanvas(std::vector<Node> &nodes);
   int solution_change_cpp(const std::vector<int> &sol_old_cycle,
                           const std::vector<int> &sol_new_path);
+  int solution_change_t2t(const std::vector<int> &sol_old_cycle,
+                          const std::vector<int> &sol_new_cycle);
 
   Instance *parent{nullptr};
   std::vector<std::unique_ptr<Instance>> children{};

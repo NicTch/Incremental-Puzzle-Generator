@@ -7,7 +7,6 @@ struct Options {
   int n_initial_nodes = 3;
   int instance_branch = 3;
   int lookahead_depths = 3;
-  bool runtime_optimization = false;
   int n_candidates = 50;
   int voronoi_resolution = 800;
   bool render_voronoi = false;

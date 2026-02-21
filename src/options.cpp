@@ -86,10 +86,6 @@ bool Options::parse(Options &out, const std::string &path) {
         int v = std::stoi(val, &i);
         if (i == val.size())
           out.lookahead_depths = v;
-      } else if (key == "runtime_optimization") {
-        bool v;
-        if (to_bool(val, v))
-          out.runtime_optimization = v;
       } else if (key == "n_candidates") {
         size_t i = 0;
         int v = std::stoi(val, &i);

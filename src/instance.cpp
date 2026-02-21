@@ -62,6 +62,23 @@ std::vector<Node> Instance::readNodesCSV(std::istream &in) {
       std::cerr << "Error: Each node need exactly x and y.\n";
     }
   }
+  // if there are no nodes, add [-1,-1]
+  if (nodes.empty()) {
+    Node n;
+    n.idx = autoId++;
+    n.x = -1.0;
+    n.y = -1.0;
+    nodes.push_back(n);
+  }
+  // if there are less than 4 node in total, 
+  //add more nodes where x and y are betweeen [-1,1] untile there are 4 nodes
+  while (nodes.size() < 4) {
+    Node n;
+    n.idx = autoId++;
+    n.x = (double)(rand() % 1000) / 1000.0 * 2.0 - 1.0;
+    n.y = (double)(rand() % 1000) / 1000.0 * 2.0 - 1.0;
+    nodes.push_back(n);
+  }
   return nodes;
 }
 
@@ -118,6 +135,7 @@ std::vector<Decommission> Instance::initDecommissions() {
       d.node2 = j;
       d.tsp_tour_length = solver.pathLength(D, path);
       d.edge_change = Instance::solution_change_cpp(baseTour, path);
+      d.opt_path = path;
       decommissions.push_back(d);
       // INFO:
       // std::cout << "path of " << i << "," << j << ": [";
@@ -177,6 +195,18 @@ int Instance::solution_change_cpp(const std::vector<int> &sol_old_cycle,
   auto set_old = cycleEdges(sol_old_cycle);
   auto Enew = pathEdges(sol_new_path);
   int diff = 0;
+  for (const auto &e : Enew) {
+    if (!set_old.count(e))
+      ++diff;
+  }
+  return diff;
+}
+
+int Instance::solution_change_t2t(const std::vector<int> &sol_old_cycle,
+                                  const std::vector<int> &sol_new_cycle) {
+  auto set_old = cycleEdges(sol_old_cycle);
+  auto Enew = cycleEdges(sol_new_cycle);
+  int diff = -2;
   for (const auto &e : Enew) {
     if (!set_old.count(e))
       ++diff;
@@ -364,7 +394,8 @@ void Instance::buildSubtree(int branching, int depth, Options &opt) {
     if (chosen_cand.size() <= 0) {
       std::cout << "No candidtates with minimum change " << min_change
                 << " for this instace.\n";
-                throw std::domain_error("Please consider lowering delta or min_change to incrase the candidate pool.");
+      std::cout << "number of core nodes:" << nodes.size() <<"depth: "
+                << opt.lookahead_depths - depth <<" \n";
       //printNodes(*this, opt);
     } else if ((int)chosen_cand.size() >= branching) {
       std::mt19937 gen(opt.seed);
@@ -424,6 +455,46 @@ void Instance::buildSubtree(int branching, int depth, Options &opt) {
       child->parent = this;
       child->fromCandidate = c;
       child->edge_change_from_previous = decommissions[c.nearest].edge_change;
+      // child->optimal_tour_length = decommissions[c.nearest].tsp_tour_length +
+      //                             std::hypot(nodes[decommissions[c.nearest].node1].x - c.x,
+      //                                        nodes[decommissions[c.nearest].node1].y - c.y) +
+      //                             std::hypot(nodes[decommissions[c.nearest].node2].x - c.x,
+      //                                        nodes[decommissions[c.nearest].node2].y - c.y);
+      // child->optimal_tour = decommissions[c.nearest].opt_path;
+      // child->optimal_tour.push_back(added.idx);
+      
+      //INFO: print the difference from the prediction and the real tour for each child
+      std::cout << "Child candidate: (" << c.x << ", " << c.y << ") edge_change_vor: " 
+      << decommissions[c.nearest].edge_change
+      << " edge_change_scnd: "
+      << decommissions[c.second].edge_change
+      << " edge_change_mip: " 
+      << Instance::solution_change_t2t(this->optimal_tour, child->optimal_tour)<< "\n";
+
+      std::cout <<"vor optimal tour length: " << decommissions[c.nearest].tsp_tour_length +
+       std::hypot(nodes[decommissions[c.nearest].node1].x - c.x, nodes[decommissions[c.nearest].node1].y - c.y) +
+       std::hypot(nodes[decommissions[c.nearest].node2].x - c.x, nodes[decommissions[c.nearest].node2].y - c.y)
+      << " scnd optimal tour length: " 
+       << decommissions[c.second].tsp_tour_length +
+       std::hypot(nodes[decommissions[c.second].node1].x - c.x, nodes[decommissions[c.second].node1].y - c.y) +
+       std::hypot(nodes[decommissions[c.second].node2].x - c.x, nodes[decommissions[c.second].node2].y - c.y)
+       << " minp optimal tour length: "
+      << child->optimal_tour_length << "\n";
+      std::cout << "vor optimal tour: [";
+      for (int x : decommissions[c.nearest].opt_path)
+        std::cout << x << ' ';
+      std::cout << added.idx << ' ';
+      std::cout << "]";
+      std::cout << "scnd optimal tour: [";
+      for (int x : decommissions[c.second].opt_path)
+        std::cout << x << ' ';
+      std::cout << added.idx << ' ';
+      std::cout << "]";
+      std::cout << " minp optimal tour: [";
+      for (int x : child->optimal_tour)
+        std::cout << x << ' ';
+      std::cout << "]\n";
+
       children.push_back(std::move(child));
     }
   }
