@@ -19,6 +19,7 @@ struct Options {
   double winding_length_percent = 0.01;
   bool benchmark = false;
   int benchmark_time = 600;
+  int seed = 100;
 
   //output file path
   std::filesystem::path output_path = "";

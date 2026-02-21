@@ -69,7 +69,8 @@ bool Options::parse(Options &out, const std::string &path) {
         size_t i = 0;
         double v = std::stod(val, &i);
         if (i == val.size())
-          out.delta = v;
+        // double it, since we work in the range between [-1,1]
+          out.delta = v *2.0;
       } else if (key == "n_initial_nodes") {
         size_t i = 0;
         int v = std::stoi(val, &i);
@@ -124,12 +125,13 @@ bool Options::parse(Options &out, const std::string &path) {
           out.svg_viewport_size = v;
       } else if (key == "epsilon") {
         size_t i = 0;
-        double v = std::stoi(val, &i);
+        double v = std::stod(val, &i);
         if (i == val.size())
-          out.epsilon = v;
+        // double it, since we work in the range between [-1,1]
+          out.epsilon = v *2.0;
       } else if (key == "winding_length_percent") {
         size_t i = 0;
-        double v = std::stoi(val, &i);
+        double v = std::stod(val, &i);
         if (i == val.size())
           out.winding_length_percent = v;
       } else if (key == "benchmark") {
@@ -138,9 +140,14 @@ bool Options::parse(Options &out, const std::string &path) {
           out.benchmark = v;
       } else if (key == "benchmark_time") {
         size_t i = 0;
-        double v = std::stoi(val, &i);
+        double v = std::stod(val, &i);
         if (i == val.size())
           out.benchmark_time = v;
+      }else if (key == "seed") {
+        size_t i = 0;
+        int v = std::stoi(val, &i);
+        if (i == val.size())
+          out.seed = v;
       }
     } catch (...) {
       // ignore bad values; keep defaults

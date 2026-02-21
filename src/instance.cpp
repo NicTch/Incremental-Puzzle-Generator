@@ -141,13 +141,13 @@ std::vector<Decommission> Instance::initDecommissions() {
   return decommissions;
 }
 
-std::pair<int, int> Instance::normalizePair(int a, int b) {
+std::pair<int, int> Instance::normalizePair(int a, int b) const {
   if (a > b)
     std::swap(a, b);
   return {a, b};
 }
 std::set<std::pair<int, int>>
-Instance::cycleEdges(const std::vector<int> &cyc) {
+Instance::cycleEdges(const std::vector<int> &cyc) const {
   std::set<std::pair<int, int>> S;
   if (cyc.empty())
     return S;
@@ -332,7 +332,9 @@ void Instance::buildSubtree(int branching, int depth, Options &opt) {
       const double detour_length = std::hypot(d1x, d1y) + std::hypot(d2x, d2y);
       const double new_tour_length =
           decommissions[c.nearest].tsp_tour_length + detour_length;
-      if (std::abs(new_tour_length - optimal_tour_length) < opt.epsilon *2 ) {
+      //std::cout <<"outside epsilon: "<<opt.epsilon << "\n";
+      if (std::abs(new_tour_length - optimal_tour_length) < (opt.epsilon) ) {
+        //std::cout <<"inside epsilon: "<<opt.epsilon << "\n";
         continue;
       }
       chosen_cand.push_back(c);
@@ -365,7 +367,7 @@ void Instance::buildSubtree(int branching, int depth, Options &opt) {
                 throw std::domain_error("Please consider lowering delta or min_change to incrase the candidate pool.");
       //printNodes(*this, opt);
     } else if ((int)chosen_cand.size() >= branching) {
-      std::mt19937 gen(54);
+      std::mt19937 gen(opt.seed);
       std::shuffle(chosen_cand.begin(), chosen_cand.end(), gen);
       chosen_cand.resize(branching);
     } else {
@@ -658,25 +660,48 @@ void print_all_solutions(const tsp_puzzle::Instance &inst, const Options &opt) {
   std::ofstream out(fullPath, std::ios::app);
 
   std::cout << "Solutions:\n";
-for (int i = 0; i < solutions.size(); ++i) {
-  std::cout << "[ ";
-  if (out) out << "[ ";
+  for (int i = 0; i < solutions.size(); ++i) {
+    std::cout << "[ ";
+    if (out) out << "[ ";
 
-  for (int j = 0; j < solutions[i].size(); ++j) {
-      std::cout << solutions[i][j] << " ";
-      if (out) out << solutions[i][j] << " ";
+    for (int j = 0; j < solutions[i].size(); ++j) {
+        std::cout << solutions[i][j] << " ";
+        if (out) out << solutions[i][j] << " ";
+    }
+
+    std::cout << "] ";
+    if (out) out << "] ";
+
+    double scaling_factor = opt.svg_viewport_size / 2.0;
+    std::stringstream ss;
+    ss << "Scaled length: " << solution_legth[i] * scaling_factor
+        << " (Unscaled: " << solution_legth[i] << ")\n";
+
+    std::cout << ss.str();
+    if (out) out << ss.str();
   }
-
-  std::cout << "] ";
-  if (out) out << "] ";
-
-  double scaling_factor = opt.svg_viewport_size / 2.0;
-  std::stringstream ss;
-  ss << "Scaled length: " << solution_legth[i] * scaling_factor
-      << " (Unscaled: " << solution_legth[i] << ")\n";
-
-  std::cout << ss.str();
-  if (out) out << ss.str();
+  //save the difference between the instances
+  if (out) {out << "solution length difference between instances: \n";}
+  if (out) {out << "[ ";}
+  for (int i = 1; i < solution_legth.size(); ++i){
+    if (out) {out << solution_legth[i] - solution_legth[i-1] << ", ";}
   }
+  if (out) {out << "] \n";}
+
+  //save the change between insances
+  
+  if (out) {out << "edge change between insances: ";}
+  if (out) {out << "[ ";}
+  for (int i = 1; i < solutions.size(); ++i){
+    auto set_old = inst.cycleEdges(solutions[i-1]);
+    auto Enew = inst.cycleEdges(solutions[i]);
+    int diff = -2;
+    for (const auto &e : Enew) {
+      if (!set_old.count(e))
+        ++diff;
+      }
+    if (out) {out << diff << ", ";}
+  }
+  if (out) {out << "] \n";}
 }
 } // namespace tsp_puzzle

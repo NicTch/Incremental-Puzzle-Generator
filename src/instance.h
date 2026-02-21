@@ -34,10 +34,11 @@ public:
   int bestChild{-1}; // index into `children` of the best continuation
 
   explicit Instance(std::vector<Node> nodesIn, Options &opt);
+  std::pair<int, int> normalizePair(int a, int b) const;
+  std::set<std::pair<int, int>> cycleEdges(const std::vector<int> &cyc) const;
 
 private:
-  std::pair<int, int> normalizePair(int a, int b);
-  std::set<std::pair<int, int>> cycleEdges(const std::vector<int> &cyc);
+  
   std::vector<std::pair<int, int>> pathEdges(const std::vector<int> &path);
   // read and cleanup the nodes
   std::vector<Node> initNodes(std::vector<Node> nodes);
