@@ -60,7 +60,9 @@ void printNodes(const tsp_puzzle::Instance &inst, Options &opt);
 void printOPT(const tsp_puzzle::Instance &inst, Options &opt);
 void printHammiltomPath(const tsp_puzzle::Instance &inst, const int i,
                         const int j, Options &opt);
-std::string nodes_to_svg(const std::vector<Node> &nodes, const Options &opt,
+std::string generate_svg_with_template(const std::vector<Node> &nodes, const Options &opt,
+                         const double radius);
+std::string generate_nodes_svg(const std::vector<Node> &nodes, const Options &opt,
                          const double radius);
 double summed_angle_percent(const std::vector<int> solution,
                             const std::vector<Node> &nodes);

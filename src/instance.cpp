@@ -592,7 +592,7 @@ inline double edgeChangeOf(const Instance &ctx, const Candidate &c) {
   return ctx.decommissions[c.nearest].edge_change;
 }
 
-std::string nodes_to_svg(const std::vector<Node> &nodes, const Options &opt,
+std::string generate_svg_with_template(const std::vector<Node> &nodes, const Options &opt,
                          const double radius = 0.01) {
   std::ostringstream out;
   out << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"";
@@ -687,6 +687,36 @@ std::string nodes_to_svg(const std::vector<Node> &nodes, const Options &opt,
   return out.str();
 }
 
+std::string generate_nodes_svg(const std::vector<Node> &nodes, const Options &opt,
+                         const double radius = 0.01) {
+  std::ostringstream out;
+  out << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 2 2\"";
+  out << " width=\"" << opt.svg_viewport_size << "\" height=\""
+      << opt.svg_viewport_size << "\"";
+  out << ">\n  <g id=\"points\">\n";
+
+  out << std::fixed << std::setprecision(6);
+  for (size_t i = 0; i < nodes.size(); ++i) {
+    double x = nodes[i].x;
+    double y = nodes[i].y;
+    // safety check
+    if (x < -1.001 || x > 1.001 || y < -1.001 || y > 1.001) {
+      std::cout << "SVG export: node out of bounds\n";
+      continue;
+    }
+    // move the frame from [-1,1]x [-1,1] to [0,4]x[0,4]
+    // flip Y so (0,0) is bottom-left visually
+    double x_svg = x + 1.0;
+    double y_svg = 2.0 - (y + 1);
+    out << "    <circle id=\"pt-" << i << "\" cx=\"" << x_svg << "\" cy=\""
+        << y_svg << "\" r=\"" << radius << "\" fill=\"#000\" />\n";
+  }
+  out << "  </g>\n</svg>\n";
+
+  return out.str();
+
+}
+
 double summed_angle_percent(const std::vector<int> solution,
                             const std::vector<Node> &nodes) {
   double sum = 0.0;
@@ -763,15 +793,18 @@ void print_all_solutions(const tsp_puzzle::Instance &inst, const Options &opt) {
     if (out) out << ss.str();
   }
   //save the difference between the instances
+  double solution_length_diff_sum = 0.0;
   if (out) {out << "solution length difference between instances: \n";}
   if (out) {out << "[ ";}
   for (int i = 1; i < solution_legth.size(); ++i){
     if (out) {out << solution_legth[i] - solution_legth[i-1] << ", ";}
+    solution_length_diff_sum += solution_legth[i] - solution_legth[i-1];
   }
   if (out) {out << "] \n";}
+  if (out) {out << "avg solution length difference: " << solution_length_diff_sum / (solution_legth.size() - 1) << "\n";}
 
   //save the change between insances
-  
+  int change_sum = 0;
   if (out) {out << "edge change between insances: ";}
   if (out) {out << "[ ";}
   for (int i = 1; i < solutions.size(); ++i){
@@ -783,7 +816,9 @@ void print_all_solutions(const tsp_puzzle::Instance &inst, const Options &opt) {
         ++diff;
       }
     if (out) {out << diff << ", ";}
+    change_sum += diff;
   }
   if (out) {out << "] \n";}
+  if (out) {out << "total edge change: " << change_sum << "\n";}
 }
 } // namespace tsp_puzzle

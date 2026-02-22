@@ -71,12 +71,7 @@ bool Options::parse(Options &out, const std::string &path) {
         if (i == val.size())
         // double it, since we work in the range between [-1,1]
           out.delta = v *2.0;
-      } else if (key == "n_initial_nodes") {
-        size_t i = 0;
-        int v = std::stoi(val, &i);
-        if (i == val.size())
-          out.n_initial_nodes = v;
-      } else if (key == "instance_branch") {
+      }  else if (key == "instance_branch") {
         size_t i = 0;
         int v = std::stoi(val, &i);
         if (i == val.size())
@@ -86,12 +81,7 @@ bool Options::parse(Options &out, const std::string &path) {
         int v = std::stoi(val, &i);
         if (i == val.size())
           out.lookahead_depths = v;
-      } else if (key == "n_candidates") {
-        size_t i = 0;
-        int v = std::stoi(val, &i);
-        if (i == val.size())
-          out.n_candidates = v;
-      } else if (key == "voronoi_resolution") {
+      }  else if (key == "voronoi_resolution") {
         size_t i = 0;
         int v = std::stoi(val, &i);
         if (i == val.size())
@@ -144,6 +134,10 @@ bool Options::parse(Options &out, const std::string &path) {
         int v = std::stoi(val, &i);
         if (i == val.size())
           out.seed = v;
+      }else if (key == "svg_template") {
+        bool v;
+        if (to_bool(val, v))
+          out.svg_template = v;
       }
     } catch (...) {
       // ignore bad values; keep defaults

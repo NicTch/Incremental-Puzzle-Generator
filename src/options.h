@@ -4,10 +4,8 @@
 
 struct Options {
   double delta = 0.2;
-  int n_initial_nodes = 3;
   int instance_branch = 3;
   int lookahead_depths = 3;
-  int n_candidates = 50;
   int voronoi_resolution = 800;
   bool render_voronoi = false;
   bool verbose = false;
@@ -19,6 +17,7 @@ struct Options {
   bool benchmark = false;
   int benchmark_time = 600;
   int seed = 100;
+  bool svg_template = true;
 
   //output file path
   std::filesystem::path output_path = "";

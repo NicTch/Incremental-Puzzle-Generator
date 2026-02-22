@@ -82,9 +82,24 @@ int main(int argc, char **argv) {
         // INFO: look at the best child
         std::cout << "There are " << inst.children.size()
                   << " viable children\n";
+        // if there are no viable children, we are stuck and can't continue
         if (inst.children.size() <= 0) {
           tsp_puzzle::printNodes(inst,options);
           tsp_puzzle::print_all_solutions(inst, options);
+          std::filesystem::path fullPath = options.output_path / "log.txt";
+          std::ofstream out(fullPath, std::ios::app);
+          out << "Failed to build Instance: Please consider lowering delta or min_change to increase the candidate pool.\n";
+          // print out the current instance for debugging
+          {
+            std::filesystem::path fullPath = options.output_path / "puzzle.svg";
+            std::ofstream out(fullPath);
+            if (!out) {
+              std::cerr << "Could not open output file: " << fullPath << "\n";
+            } else {
+                std::string svg = tsp_puzzle::generate_nodes_svg(inst.nodes, options, 0.1);
+                out << svg;
+            }
+          }
           throw std::domain_error("Please consider lowering delta or min_change to incrase the candidate pool.");
         }
         // std::cout << "Old_tour_length: " << inst.optimal_tour_length
@@ -104,27 +119,31 @@ int main(int argc, char **argv) {
       }
 
       // TODO: add options
-      if (true) {
+      {
         std::filesystem::path fullPath = options.output_path / "puzzle.svg";
         std::ofstream out(fullPath);
         if (!out) {
-          // error
+          std::cerr << "Could not open output file: " << fullPath << "\n";
         } else {
-          std::string svg = tsp_puzzle::nodes_to_svg(inst.nodes, options, 0.01);
-          out << svg;
+          if(options.svg_template){
+             std::string svg = tsp_puzzle::generate_svg_with_template(inst.nodes, options, 0.01);
+             out << svg;
+          }else{
+             std::string svg = tsp_puzzle::generate_nodes_svg(inst.nodes, options, 0.1);
+             out << svg;
+          }
         }
-      }
-
-      if (options.verbose) {
-        std::cout << "-------------verbose---------------\n";
-        //tsp_puzzle::printOPT(inst,options);
-        // tsp_puzzle::printHammiltomPath(inst, 0, 5);
-        //tsp_puzzle::printDecommissions(inst, 10,options);
-        //tsp_puzzle::printCandidates(inst, 5,options);
       }
       tsp_puzzle::printNodes(inst,options);
       tsp_puzzle::print_all_solutions(inst, options);
-
+      if (options.verbose) {
+        std::cout << "-------------verbose_start---------------\n";
+        tsp_puzzle::printOPT(inst,options);
+        tsp_puzzle::printHammiltomPath(inst, 0, 5, options);
+        tsp_puzzle::printDecommissions(inst, 10,options);
+        tsp_puzzle::printCandidates(inst, 5,options);
+        std::cout << "-------------verbose_end---------------\n";
+      }
       //std::cout << "Loaded " << inst.nodes.size() << " points\n";
     } catch (const std::exception &e) {
       std::cerr << "Failed to build Instance: " << e.what() << "\n";
