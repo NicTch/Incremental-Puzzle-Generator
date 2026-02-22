@@ -45,7 +45,7 @@ private:
   // read and cleanup the nodes
   std::vector<Node> initNodes(std::vector<Node> nodes);
   // construct decommissions from nodes
-  std::vector<Decommission> initDecommissions();
+  std::vector<Decommission> initDecommissions(Options &opt);
   // construct candidates from decommissions
   std::vector<Candidate> initCandidate(Options &opt);
   inline double edgeChange(const Candidate &c) const {

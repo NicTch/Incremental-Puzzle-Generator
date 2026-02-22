@@ -33,6 +33,13 @@ struct Cycle {
   size_t size() const { return nodes.size(); }
 };
 
+struct CombinedResult {
+    std::vector<std::vector<std::vector<int>>> best_tours;
+    std::vector<std::vector<std::vector<int>>> second_tours;
+    std::vector<std::vector<double>> best_path_lengths;
+    std::vector<std::vector<double>> second_path_lengths;
+};
+
 class Solver {
 
 public:
@@ -44,8 +51,7 @@ public:
   std::vector<int>
   constrained_optimal_tour_mip(const std::vector<std::vector<double>> &D, int s,
                                int t);
-  std::vector<std::vector<std::vector<int>>>
-  batch_constrained_optimal_tour_mip(const std::vector<std::vector<double>> &D);
+  CombinedResult batch_constrained_optimal_tour_mip(const std::vector<std::vector<double>> &D);
   std::vector<int> optimal_tour_mip(const std::vector<std::vector<double>> &D);
   static void findsubtour(int n, double **sol, int *tourlenP, int *tour);
   bool sanitize_path(std::vector<int> &v, const int &a, const int &b);

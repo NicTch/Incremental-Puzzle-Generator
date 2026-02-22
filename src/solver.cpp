@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <limits>
 
 namespace tsp_puzzle {
 
@@ -366,125 +367,175 @@ Solver::constrained_optimal_tour_mip(const std::vector<std::vector<double>> &D,
   delete env;
   return tour;
 }
-std::vector<std::vector<std::vector<int>>>
-Solver::batch_constrained_optimal_tour_mip(
+
+CombinedResult Solver::batch_constrained_optimal_tour_mip(
     const std::vector<std::vector<double>> &D) {
-  const int n = (int)D.size();
-  // NOTE: implement factorial
-  std::vector<std::vector<std::vector<int>>> all_tours(
-      n, std::vector<std::vector<int>>(n, std::vector<int>{}));
-  double *x = new double[n];
-  double *y = new double[n];
 
-  GRBEnv *env = NULL;
-  GRBVar **vars = NULL;
+  const int n = static_cast<int>(D.size());
 
-  vars = new GRBVar *[n];
-  for (int i = 0; i < n; i++)
-    vars[i] = new GRBVar[n];
+  CombinedResult result;
+  result.best_tours.assign(n, std::vector<std::vector<int>>(n));
+  result.second_tours.assign(n, std::vector<std::vector<int>>(n));
+  result.best_path_lengths.assign(n, std::vector<double>(n, -1.0));
+  result.second_path_lengths.assign(n, std::vector<double>(n, -1.0));
+
+  // Basic validation
+  if (n < 3) return result;
+  for (int i = 0; i < n; ++i) {
+    if (static_cast<int>(D[i].size()) != n) {
+      throw std::invalid_argument("batch_constrained_optimal_tour_mip: D must be square");
+    }
+  }
 
   try {
-    GRBEnv env = GRBEnv(true);
+    GRBEnv env(true);
     env.set(GRB_IntParam_OutputFlag, 0);
     env.start();
 
-    GRBModel model = GRBModel(env);
-    // env = new GRBEnv();
-    // GRBModel model = GRBModel(*env);
-
-    // Must set LazyConstraints parameter when using lazy constraints
-
+    GRBModel model(env);
     model.set(GRB_IntParam_LazyConstraints, 1);
 
-    // Create binary decision variables
-
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j <= i; j++) {
-        vars[i][j] =
-            model.addVar(0.0, 1.0, D[i][j], GRB_BINARY,
-                         "x_" + std::to_string(i) + "_" + std::to_string(j));
-        vars[j][i] = vars[i][j];
+    // x is a symmetric matrix of binary vars (including diagonal, later fixed to 0)
+    std::vector<std::vector<GRBVar>> x(n, std::vector<GRBVar>(n));
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j <= i; ++j) {
+        x[i][j] = model.addVar(
+            0.0, 1.0, D[i][j], GRB_BINARY,
+            "x_" + std::to_string(i) + "_" + std::to_string(j));
+        x[j][i] = x[i][j]; // mirror handle
       }
     }
 
     // Degree-2 constraints
-
-    for (int i = 0; i < n; i++) {
-      GRBLinExpr expr = 0;
-      for (int j = 0; j < n; j++)
-        expr += vars[i][j];
-      model.addConstr(expr == 2, "deg2_" + std::to_string(i));
+    for (int i = 0; i < n; ++i) {
+      GRBLinExpr deg = 0;
+      for (int j = 0; j < n; ++j) deg += x[i][j];
+      model.addConstr(deg == 2, "deg2_" + std::to_string(i));
     }
 
-    // Forbid edge from node back to itself
+    // Forbid self-edges
+    for (int i = 0; i < n; ++i) x[i][i].set(GRB_DoubleAttr_UB, 0.0);
 
-    for (int i = 0; i < n; i++)
-      vars[i][i].set(GRB_DoubleAttr_UB, 0);
-
-    // Set callback function
-
-    subtourelim cb = subtourelim(vars, n);
+    // Wire callback (expects GRBVar** with row pointers)
+    std::vector<GRBVar *> xrows(n);
+    for (int i = 0; i < n; ++i) xrows[i] = x[i].data();
+    subtourelim cb(xrows.data(), n);
     model.setCallback(&cb);
 
-    // Forced Edge Constraint
+    model.update();
 
-    GRBLinExpr force_expr = vars[0][0];
-    GRBConstr forced = model.addConstr(force_expr == 1, "forced_x_s_t");
+    // Helper: extract tour (and optionally list active edges) from current solution.
+    auto extractTour = [&](std::vector<int> &tour,
+                           std::vector<std::pair<int, int>> *active_edges) -> bool {
+      // read x-values
+      std::vector<std::vector<double>> xval(n, std::vector<double>(n, 0.0));
+      for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+          xval[i][j] = x[i][j].get(GRB_DoubleAttr_X);
+        }
+      }
 
-    // Optimize model
-    int pi = 0, pj = 0;
+      // build row pointers for findsubtour(double**)
+      std::vector<double *> xval_rows(n);
+      for (int i = 0; i < n; ++i) xval_rows[i] = xval[i].data();
+
+      int len = 0;
+      Solver::findsubtour(n, xval_rows.data(), &len, tour.data());
+      if (len != n) return false;
+
+      if (active_edges) {
+        active_edges->clear();
+        active_edges->reserve(n);
+        for (int i = 0; i < n; ++i) {
+          for (int j = i + 1; j < n; ++j) {
+            if (xval[i][j] > 0.5) active_edges->push_back({i, j});
+          }
+        }
+      }
+      return true;
+    };
+
+    // Force edges via bounds (restore previous forced edge each iteration)
+    int prev_i = -1, prev_j = -1;
+
     for (int i = 0; i < n; ++i) {
       for (int j = i + 1; j < n; ++j) {
-        model.chgCoeff(forced, vars[pi][pj], 0.0);
-        model.chgCoeff(forced, vars[i][j], 1.0);
+
+        // Unforce previous edge
+        if (prev_i != -1) {
+          x[prev_i][prev_j].set(GRB_DoubleAttr_LB, 0.0);
+          x[prev_i][prev_j].set(GRB_DoubleAttr_UB, 1.0);
+        }
+
+        // Force (i,j)
+        x[i][j].set(GRB_DoubleAttr_LB, 1.0);
+        x[i][j].set(GRB_DoubleAttr_UB, 1.0);
+        prev_i = i; prev_j = j;
+
         model.optimize();
-        pi = i;
-        pj = j;
+        if (model.get(GRB_IntAttr_SolCount) == 0) continue;
 
-        // Extract solution
+        const double best_obj = model.get(GRB_DoubleAttr_ObjVal);
 
-        std::vector<int> tour(n);
+        std::vector<int> best_tour(n);
+        std::vector<std::pair<int, int>> best_edges;
+        if (!extractTour(best_tour, &best_edges)) continue;
+
+        if (sanitize_path(best_tour, i, j)) {
+          result.best_tours[i][j] = best_tour;
+          // path length = tour length - forced edge cost
+          result.best_path_lengths[i][j] = best_obj - D[i][j];
+        }
+
+        // No-good cut to exclude exactly this edge set
+        if (best_edges.empty()) {
+          result.second_path_lengths[i][j] = std::numeric_limits<double>::infinity();
+          continue;
+        }
+
+        GRBLinExpr ban = 0;
+        for (const auto &e : best_edges) ban += x[e.first][e.second];
+
+        const int m = static_cast<int>(best_edges.size()); // should be n for a tour
+        GRBConstr ban_constr = model.addConstr(
+            ban <= m - 1,
+            "ban_best_" + std::to_string(i) + "_" + std::to_string(j));
+        model.update();
+
+        model.optimize();
+
         if (model.get(GRB_IntAttr_SolCount) > 0) {
-          double **sol = new double *[n];
-          for (int i = 0; i < n; i++)
-            sol[i] = model.get(GRB_DoubleAttr_X, vars[i], n);
+          const double second_obj = model.get(GRB_DoubleAttr_ObjVal);
 
-          int len;
-
-          Solver::findsubtour(n, sol, &len, tour.data());
-          assert(len == n);
-
-          // std::cout << "Tour: ";
-          // for (i = 0; i < len; i++)
-          //   std::cout << tour[i] << " ";
-          // std::cout << std::endl;
-
-          for (int i = 0; i < n; i++)
-            delete[] sol[i];
-          delete[] sol;
-        }
-        if (sanitize_path(tour, i, j)) {
-          all_tours[i][j] = std::move(tour);
+          std::vector<int> second_tour(n);
+          if (extractTour(second_tour, nullptr) && sanitize_path(second_tour, i, j)) {
+            result.second_tours[i][j] = std::move(second_tour);
+            result.second_path_lengths[i][j] = second_obj - D[i][j];
+          }
         } else {
-          std::cout << "Could not sanitize tour between :" << i << j << "\n";
+          result.second_path_lengths[i][j] = std::numeric_limits<double>::infinity();
         }
+
+        model.remove(ban_constr);
+        model.update();
       }
     }
 
-  } catch (GRBException e) {
-    std::cout << "Error number: " << e.getErrorCode() << std::endl;
-    std::cout << e.getMessage() << std::endl;
+    // Restore last forced edge bounds (optional cleanliness)
+    if (prev_i != -1) {
+      x[prev_i][prev_j].set(GRB_DoubleAttr_LB, 0.0);
+      x[prev_i][prev_j].set(GRB_DoubleAttr_UB, 1.0);
+      model.update();
+    }
+
+  } catch (const GRBException &e) {
+    std::cout << "Error number: " << e.getErrorCode() << "\n"
+              << e.getMessage() << std::endl;
   } catch (...) {
     std::cout << "Error during optimization" << std::endl;
   }
 
-  for (int i = 0; i < n; i++)
-    delete[] vars[i];
-  delete[] vars;
-  delete[] x;
-  delete[] y;
-  delete env;
-  return all_tours;
+  return result;
 }
 
 bool Solver::sanitize_path(std::vector<int> &v, const int &a, const int &b) {

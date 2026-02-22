@@ -82,17 +82,19 @@ int main(int argc, char **argv) {
         // INFO: look at the best child
         std::cout << "There are " << inst.children.size()
                   << " viable children\n";
-        std::cout << "Old_tour_length: " << inst.optimal_tour_length
-                  << " New_tour_length: "
-                  << inst.children[inst.bestChild]->optimal_tour_length << "\n";
-        std::cout << "Length difference to new tour: "
-                  << inst.children[inst.bestChild]->optimal_tour_length -
-                         inst.optimal_tour_length
-                  << "\n";
         if (inst.children.size() <= 0) {
-          std::cout << "No viable children for this instance.\n";
+          tsp_puzzle::printNodes(inst,options);
+          tsp_puzzle::print_all_solutions(inst, options);
           throw std::domain_error("Please consider lowering delta or min_change to incrase the candidate pool.");
         }
+        // std::cout << "Old_tour_length: " << inst.optimal_tour_length
+        //           << " New_tour_length: "
+        //           << inst.children[inst.bestChild]->optimal_tour_length << "\n";
+        // std::cout << "Length difference to new tour: "
+        //           << inst.children[inst.bestChild]->optimal_tour_length -
+        //                  inst.optimal_tour_length
+        //           << "\n";
+
         inst.applyChildToRoot();
         auto t2 = std::chrono::high_resolution_clock::now();
         auto ms_int =
