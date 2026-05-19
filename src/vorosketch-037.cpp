@@ -5468,8 +5468,12 @@ vorosketch_main(const std::vector<tsp_puzzle::Node> &nodes,
                           "results may occur.";
   //  int argc = (int)(sizeof(argv) / sizeof(argv[0]));
   std::string res = std::to_string(resolution);
-  std::vector<std::string> args = {"vorosketch",  "-2", "-m",
-                                   "tspdistance", "-r", res};
+  std::vector<std::string> args = {"vorosketch",
+                                  "-2",
+                                   "-m",
+                                   "tspdistance",
+                                  "-r",
+                                  res};
   if (renderImage) {
     args.push_back("-c");
     args.push_back("-j");
@@ -5867,6 +5871,7 @@ vorosketch_main(const std::vector<tsp_puzzle::Node> &nodes,
         canvas.shade(row, col, here.shade);
       }
     }
+
     if (options.verbose)
       reportProgress(1, "> Drawing regions");
 

@@ -1,16 +1,16 @@
 delta = 0.075
-instance_branch = 3
+instance_branch = 1
 lookahead_depths = 1
-voronoi_resolution = 300
-render_voronoi = false
+voronoi_resolution = 1000
+render_voronoi = true
 verbose = false
 min_edge_change = 1
 # total number of nodes in the resulting puzzle
-total_nodes = 14
+total_nodes = 4
 svg_viewport_size = 265
-epsilon = 0.075
+epsilon = 0
 winding_length_percent = 0.052
 benchmark = false
 benchmark_time = 1
-seed = 43
+seed = 34
 svg_template = false

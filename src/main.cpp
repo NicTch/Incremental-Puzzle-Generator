@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
              std::string svg = tsp_puzzle::generate_svg_with_template(inst.nodes, options, 0.01);
              out << svg;
           }else{
-             std::string svg = tsp_puzzle::generate_nodes_svg(inst.nodes, options, 0.1);
+             std::string svg = tsp_puzzle::generate_nodes_svg(inst.nodes, options, 0.05);
              out << svg;
           }
         }

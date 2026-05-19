@@ -1,41 +1,43 @@
 import subprocess
 import os
+import time
 
 # Experiment parameters
-instance_branch = [5,10,15]
-lookahead_depths = [0,1,2]
+# instance_branch = [5,10,15]
+# lookahead_depths = [2]
+seed = [134,234,334,434,534]
 # min_edge_change = [1]
-# epsilon = [0.075]
-# delta = [0.075]
+epsilon = [0.075]
+delta = [0.075]
 
-trials = 3
 
 base_toml = r"""
-delta = 0.075
-#instance_branch = 10
-#lookahead_depths = 3
+#delta = 0.075
+instance_branch = 10
+lookahead_depths = 1
 voronoi_resolution = 300
-render_voronoi = false
+render_voronoi = true
 verbose = false
 min_edge_change = 1
 total_nodes = 14
 svg_viewport_size = 265
-epsilon = 0.075
+#epsilon = 0.075
 winding_length_percent = 0.052
 benchmark = false
 benchmark_time = 1
-seed = 43
+#seed = 43
 svg_template = false
 """
-for t in range(trials):
-    for b in instance_branch:
-        for n in lookahead_depths:
+for t in seed:
+    for b in epsilon:
+        for n in delta:
             # 1. Create a temporary config file for this run
             config_filename = fr"config_temp.toml"
             with open(config_filename, "w") as f:
                 f.write(base_toml)
-                print(fr"instance_branch = {b}", file=f)
-                print(fr"lookahead_depths = {n}", file=f)
+                print(fr"epsilon = {b}", file=f)
+                print(fr"delta = {n}", file=f)
+                print(fr"seed = {t}", file=f)
 
             # 2. Call your C++ executable
             try:
@@ -44,6 +46,7 @@ for t in range(trials):
                     [r".\build\Debug\inc_puzzle_gen.exe", r".\nodes\deltatest.csv", config_filename]
                     #,capture_output=True, text=True
                 )
+                time.sleep(1)  # Optional: wait a bit between runs
                 
                 # 3. Save logs or parse output immediately
                 # with open(f"results_b{b}_n{n}.log", "w") as log:
