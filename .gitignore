@@ -45,5 +45,4 @@ gurobi.log
 #folders that are temporary
 output/
 build/
-nodes/
 
